@@ -46,11 +46,26 @@ def import_csv_locations_instructions():
 	print('It will also account for time offsets based on the (UTC) and what comes after.  EX: (UTC-5)')
 	print()
 	print('First, make sure you\'ve exported the EXCEL file, then opened it and saved it as a CSV')
+	print('The CSV file should use commas to separate and be UTF-8 or UTF-16 encoded with are standard')
 	print('Next, place the saved file in the "data_to_parse" subfolder or save it to the subfolder.')
+	print()
+	print('Required fields: TIME, LONGITUDE, LATITUDE. \nOptional fields: PRECISION, END TIME, AGGREGATED LOCATIONS, DELETED')
+	print('To avoid errors with some CSV formats, make sure an unused column ')
+	print('with a names header such as "UNUSED" is first (all the way LEFT)')
 	print()
 	input('Press ENTER')
 	print()
 
+
+def is_utf16(ls_filename):
+    with open(ls_filename, 'rb') as lf_file:
+		# Read the first 2 bytes 
+        lrb_start = lf_file.read(2)
+        
+        # Returns True if first 2 bytes in either of the byte arrays
+        # LE or BE depending on system.
+        return lrb_start in [b'\xff\xfe', b'\xfe\xff']
+        
 
 def import_locations_csv (of_db, of_log, of_folder = './data_output/', if_folder = './data_to_parse/'):
 
@@ -88,28 +103,31 @@ def import_locations_csv (of_db, of_log, of_folder = './data_output/', if_folder
 				print('Please provide a file name that exists')
 				print()
 
-
 	# OPEN INFILE AND PARSE EACH LINE
+	# Check if file is UTF-16 or not (makes a difference)
+	lb_utf16 = is_utf16(in_file)
 	
-	in_file_o = open(in_file,'r')
+	# Open the file according to encoding
+	if lb_utf16 == False: in_file_o = open(in_file,'r')
+	if lb_utf16 == True: in_file_o = open(in_file,'r', encoding='utf-16')
 	log_file = open(of_log,'a')
+	
 	
 	# SET UP THE SQLITE DATABASE CONNECTION AND CURSOR
 	sql_con = sqlite3.connect(of_db)
 	sql_con.row_factory = sqlite3.Row
 	sql_cur = sql_con.cursor()
 	
-	
 	# PRE ASSIGN VARIABLES TO AVOID AN ERROR IF THEY ARE NOT THE FIRST LINE.
 	# THESE MUST BE ASSIGNED OUTSIDE OF THE LOOP
 	 
-	i_time = 0
-	i_endtime = 0
-	i_precisition = 0
-	i_latitude = 0
-	i_longitude = 0
-	i_agglocations = 0
-	i_deleted = 0
+	i_time = -1
+	i_endtime = -1
+	i_precision = -1
+	i_latitude = -1
+	i_longitude = -1
+	i_agglocations = -1
+	i_deleted = -1
 	
 	i_lineerror = 0
 	i_count = 0
@@ -121,12 +139,11 @@ def import_locations_csv (of_db, of_log, of_folder = './data_output/', if_folder
 	log_file.write('====================== IMPORTING CSV DATA =====================\n')
 	log_file.write('===============================================================\n\n')
 	
-	
-	
 	# FIND THE HEADERS AND SET THE VARIABLES FOR THEIR LOCATIONS, LOOP THROUGH THE LINES UNTIL THEY ARE FOUND
 	while line_skip < 3:
 		
 		in_file_l = in_file_o.readline().rstrip() #strip gets rid of \n at end of each line read
+
 		in_file_d = in_file_l.split(',')
 
 		if not in_file_l:
@@ -141,7 +158,7 @@ def import_locations_csv (of_db, of_log, of_folder = './data_output/', if_folder
 				line_skip += 1
 			if field.upper() == 'END TIME':
 				i_endtime = fieldcount
-			if field.upper() == 'PRECISION':
+			if field.upper() == 'PRECISION' or field.upper() == 'HORIZONTAL ACCURACY': # Added horizontal accuracy for new Cellebrite update
 				i_precision = fieldcount
 			if field.upper() == 'LATITUDE':
 				i_latitude = fieldcount
@@ -156,17 +173,16 @@ def import_locations_csv (of_db, of_log, of_folder = './data_output/', if_folder
 			
 			fieldcount += 1
 			
-		
 		# COUNT THE LINES READ TO GET THROUGH THE FIELD NAMES
 		line_count += 1
-	
+		
 	# RESET THE LINE SKIP
 	line_skip = 0 
 
 	log_file.write('Field location indexes found and assigned\n\n')
 	
 	# POSSIBLE TO LOOK AT ====== line = linecache.getline(thefilename, 33) READS THAT LINE W/O OPENING THE FILE   STANDARD LIBRARY
-
+	
 	# LOOP THROUGH THE REST OF THE RECORDS AND IMPORT THEM IF VALID
 	while True:
 		
@@ -175,67 +191,77 @@ def import_locations_csv (of_db, of_log, of_folder = './data_output/', if_folder
 		in_file_l = in_file_o.readline().rstrip() #strip gets rid of \n at end of each line read
 		in_file_d = in_file_l.split(',')
 
-		
 		if not in_file_l:
 			break
-				
+
 		fieldcount = 0
 		
-		# PRE ASSIGN THESE TO AVOID POSSIBLE CRASHES
+		# ~ # PRE ASSIGN THESE TO AVOID POSSIBLE CRASHES
 		s_time = ''
 		s_endtime = ''
-		s_mactime = ''
-		s_macendtime = ''
-		s_precision_type = ''
+		s_latitude = ''
+		s_longitude = ''
+		s_time = ''
+		s_deleted = ''
+		s_precision = ''
+		s_endtime = ''
+		s_agglocations = ''
 		
 		# IF THEY ARE ALL ASSIGNED, GET THE DATA FOR EACH FIELD ACCORDINGLY.
 		try:
-			if i_time != 0 and i_endtime != 0 and i_latitude != 0 and i_longitude != 0:
+		
+			if i_time != -1 and i_latitude != -1 and i_longitude != -1:
+
 				s_time = in_file_d[i_time]
-				s_endtime = in_file_d[i_endtime]
-				s_precision = in_file_d[i_precision]
+				if i_endtime != -1: s_endtime = in_file_d[i_endtime]
+				if i_precision != -1: s_precision = in_file_d[i_precision]
 				s_latitude = in_file_d[i_latitude]
 				s_longitude = in_file_d[i_longitude]
-				s_agglocations = in_file_d[i_agglocations]
-				s_deleted = in_file_d[i_deleted]
+				if i_agglocations != -1: s_agglocations = in_file_d[i_agglocations]
+				if i_deleted != -1: s_deleted = in_file_d[i_deleted]
 				# ASSIGN DELETED INSTEAD OF YES FOR LABELING.
 				if s_deleted.upper() == "YES":
 					s_deleted = "DELETED"	
-					
+			
 				# GET RID OF THE HORIZONTAL LABEL IN PRECISION
 				x = ': ' in s_precision
 				if x == True: 
 					split_s_precision = s_precision.split(': ')
 					s_precision_type = split_s_precision[0]
 					s_precision = split_s_precision[1]
+				else: s_precision_type = ''
 				x = False
 				s_precision_units = 'Meters Radius'
 
+				if s_time != None and s_time != '':				
+					s_mactime = module_general_functions.datetime_to_epoch(s_time)
+					if s_mactime == 'INVALID': s_mactime = 'NULL'
+				else: s_mactime = ''
+					
+				if s_endtime != None and s_endtime != '':
+					s_macendtime = module_general_functions.datetime_to_epoch(s_endtime)
+					if smacendtime == 'INVALID': s_macendtime = 'NULL'
+				else: s_macendtime = ''
 				
-				s_mactime = module_general_functions.datetime_to_epoch(s_time)
-				s_macendtime = module_general_functions.datetime_to_epoch(s_endtime)
-
-
 				# INSERT THE RECORD INTO THE SQLITE DATABASE TABLE _device_locations
 				sql_insert = f"""INSERT INTO _device_locations (ZTIMESTAMP, ZENDTIME, ZHORIZONTALACCURACY, ZHACCURACYTYPE, 
 				ZHACCURACYUNITS, ZLATITUDE, ZLONGITUDE, AGGREGATEDLOCATIONS, DELETED)
 				VALUES ('{s_mactime}','{s_macendtime}','{s_precision}','{s_precision_type}','{s_precision_units}',
 				'{s_latitude}','{s_longitude}','{s_agglocations}','{s_deleted}')"""
 				
-				sql_cur.execute(sql_insert)
-				
-				
+				# Only create the entry if the three requirements are there
+				if s_mactime != '' and s_latitude != '' and s_longitude != '':
+					sql_cur.execute(sql_insert)
+	
 				i_count += 1
 
 		# HERE FOR LINES THAT ARE MESSED UP TO AVOID CRASHING	
 		except Exception as e:
 			i_lineerror += 1
-			
-			print('LINE ERROR...(This is normal and is just reporting lines that don\'t fit the header layout)')
-			# print('EXCEPTION: '+ str(e))
+			# ~ print(e)
+			print(f'LINE ERROR...(Reporting lines that don\'t fit the header layout){e}')
 			print()
 
-	
 	log_file.write(f'Records imported: {i_count} from {in_file}\n')
 	log_file.write(f'Line errors from abnormal record lines: {i_lineerror}\n')
 	print(f'Records imported: {i_count} from {in_file}')

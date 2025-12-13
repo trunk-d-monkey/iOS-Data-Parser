@@ -3,7 +3,7 @@
 # organizing data from  the iOS file system. 
 #           
 #
-# Version 1.0
+# Version 1.2
 # Date  2023-04-03
 # Copyright (C) 2023 - Aaron Dee Roberts
 #
@@ -19,6 +19,9 @@
 #
 # You can view the GNU General Public License at <http://www.gnu.org/licenses/>
 #
+# VERSION UPDATES ===============================================================
+# V 1.2: Updated the CSV locations import to handle Cellebrite's updated exports
+# and detect and work with both UTF-8 and UTF-16.  Instructions were also updated.
 
 import sys
 import os
