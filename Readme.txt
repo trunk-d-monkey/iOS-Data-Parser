@@ -1,7 +1,7 @@
-NOTE: Currently the CSV import to SQLite for KML generation is broken since Cellebrite's export changes.  I'll fix the module and get it working again.  Everything else seems to work find. 2025-12-12
 
-Version 1.1 
+Version 1.2
 -Updated the dates in the KML files to work with Google Earth's timeline auto adjustment. 
+-Updated the CSV import module to detect and work with both UTF-8 and UTF-16
 
 A forensic parser for iOS app usage analysis and location parsing. Includes inFocus BIOME parsing. Start it with "ios-data-parser.py".
 
@@ -14,4 +14,5 @@ App usage includes the importing of the inFocus BIOME data removed from the Know
 This uses the Python 3 standard libraries only. So, it should work without worrying about PIPing any other libraries or having some missing and not being available.  If the batch file doesn't work you may have to change "python3" to "python"
 
 https://github.com/leroygbartholomew/ios_parser_app_usage_locations
+
 
