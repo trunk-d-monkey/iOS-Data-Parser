@@ -231,7 +231,7 @@ def import_locations_csv (of_db, of_log, of_folder = './data_output/', if_folder
 					s_precision = split_s_precision[1]
 				else: s_precision_type = ''
 				x = False
-				s_precision_units = 'Meters Radius'
+				s_precision_units = 'Meters'
 
 				if s_time != None and s_time != '':				
 					s_mactime = module_general_functions.datetime_to_epoch(s_time)
