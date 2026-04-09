@@ -1,3 +1,5 @@
+Version 1.3
+-Fixed a part in the CSV import that set the accuracty to Meters Radius instead of Meters which messed up the rename with the KML Refine python script. 
 
 Version 1.2
 -Updated the dates in the KML files to work with Google Earth's timeline auto adjustment. 
