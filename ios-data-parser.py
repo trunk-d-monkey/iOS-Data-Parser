@@ -3,7 +3,8 @@
 # organizing data from  the iOS file system. 
 #           
 #
-# Version 1.2
+# Version 1.3
+# Most recent fix date: 2026-04-09
 # Date  2023-04-03
 # Copyright (C) 2023 - Aaron Dee Roberts
 #
