@@ -1,3 +1,7 @@
+# V 1.4: Fixed a bug where the accuracy units was not being filled upon importing
+# From the ZRTLOCATIONSMO to the internal Locations table which in turn was not
+# allowing for proper parsing of horizontal accuracy in the KML labels. 
+
 Version 1.3
 -Fixed a part in the CSV import that set the accuracty to Meters Radius instead of Meters which messed up the rename with the KML Refine python script. 
 
