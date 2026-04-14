@@ -354,7 +354,7 @@ def start_parsing_kml(of_base, of_log, of_db, q_table = 'ZRTCLLOCATIONMO', of_fo
 			
 			sqlite_query_utc = f"""SELECT 
 			DATETIME(ZTIMESTAMP + 978307200{time_zone_offset}, 'unixepoch') AS TIMESTAMP, DATETIME(ZENDTIME + 978307200{time_zone_offset}, 'unixepoch') AS ENDTIME, 
-			SUBSTR(ZHORIZONTALACCURACY, 1, 7), ZHACCURACYTYPE, ZHACCURACYUNITS, DELETED, ZLATITUDE, ZLONGITUDE, ZSPEED, AGGREGATEDLOCATIONS 
+			SUBSTR(ZHORIZONTALACCURACY, 1, 7) || " Meters)", ZHACCURACYTYPE, ZHACCURACYUNITS, DELETED, ZLATITUDE, ZLONGITUDE, ZSPEED, AGGREGATEDLOCATIONS 
 			FROM {q_table}
 			WHERE ZHORIZONTALACCURACY < {acc_cutoff} 
 			AND ZTIMESTAMP BETWEEN {start_timestamp} AND {end_timestamp} 
@@ -429,7 +429,7 @@ def start_parsing_kml(of_base, of_log, of_db, q_table = 'ZRTCLLOCATIONMO', of_fo
 					if stime_start != '' or stime_start != None:
 						# FORMAT THE TIME FOR THE TIME USED TO ACTUALLY PUT THE LOCATION IN THE TIME LINE
 						stime_plot = stime_start[0:10] + 'T' + stime_start[11:19]
-						if stime_end != '':
+						if stime_end != '' and '2000-12' not in stime_end and '2001-01' not in stime_end:
 							stime_label = f'{stime_start} ({time_zone_label}) to {stime_end} ({time_zone_label})'
 						else:
 							stime_label = f'{stime_start} ({time_zone_label})'
