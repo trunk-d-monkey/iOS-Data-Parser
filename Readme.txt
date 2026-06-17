@@ -2,9 +2,12 @@
 # From the ZRTLOCATIONSMO to the internal Locations table which in turn was not
 # allowing for proper parsing of horizontal accuracy in the KML labels. 
 #
-# Included kml-refine.py which allows the refinement of a kml file.  This includes changing display names and, most importantly, creating path lines
-# which include high and low speeds according to horizontal precision.  The speeds often need to be done by restricting points to lower horizontal precisions
-# but when doing so, it can produce a nice timeline prior to an accident to show if the person was speeding all over or to determine if someone may have 
+# Included kml-refine.py which allows the refinement of a kml file.  
+# This includes changing display names and, most importantly, creating path lines
+# which include high and low speeds according to horizontal precision.  
+# The speeds often need to be done by restricting points to lower horizontal precisions
+# but when doing so, it can produce a nice timeline prior to an accident to 
+# show if the person was speeding all over or to determine if someone may have 
 # stopped briefly while driving.  It's a good extra tool. 
 
 Version 1.3
